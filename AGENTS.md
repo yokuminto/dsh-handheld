@@ -1,8 +1,8 @@
-# dsh-mobile-nav
+# dsh-handheld
 
 ## Project
 
-- 纯客户端 DSH（DeepSeek Harness）Web UI 插件；npm 包名 `@dsh-external/dsh-mobile-nav`，Git 仓库/README 名 `dsh-web-mobile`，patch 行 id `dsh-mobile-nav`。
+- 纯客户端 DSH（DeepSeek Harness）Web UI 插件；npm 包名 `@yokuminto/dsh-handheld`，Git 仓库/README 名 `dsh-handheld`，patch 行 id `dsh-handheld`。
 - 作用：窄屏（<1024px）把官方 Web UI 的侧栏 rail 改为 overlay 抽屉、会话区全宽，并适配状态栏/安全区/`theme-color`、设置弹窗、文件树/预览底部浮层、统计栏等；桌面端（≥1024px）刻意无操作，与未安装插件一致。
 - 单包仓库（非 monorepo），没有 workspace 配置；`packageManager` 为 `pnpm@11.7.0`。
 - 入口/边界：host 半区 `src/index.ts` 只导出空 `apply()` 占位；浏览器半区 `src/client/index.tsx` 是真正入口，通过 `package.json` 的 `exports["./client"]` 和 `dsh.client.platform: "web"` 被发现。
@@ -18,9 +18,9 @@
   - 等价于：`tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit`
 - 打包/发布前：`npm run prepack`（内部执行 `npm run build`）；`npm pack` 会触发它。
 - **没有 test/lint/CI 脚本**；用 `pnpm verify`、`git diff --check` 和手动浏览器检查。
-- 本地开发安装：`dsh plugin --profile web add link:/path/to/dsh-mobile-nav`，然后重启 `dsh web`。
-- 配置 sanity check：`dsh --profile web --dump-config` 应能看到 `dsh-mobile-nav` 插件行。
-- 用户安装（README）：`dsh plugin --profile web add github:mexiaosqwq/dsh-web-mobile`。
+- 本地开发安装：`dsh plugin --profile web add link:/path/to/dsh-handheld`，然后重启 `dsh web`。
+- 配置 sanity check：`dsh --profile web --dump-config` 应能看到 `dsh-handheld` 插件行。
+- 用户安装（README）：`dsh plugin --profile web add github:yokuminto/dsh-handheld`。
 
 ## Architecture
 
@@ -56,7 +56,7 @@
 
 ## Pitfalls
 
-- 命名不一致：README/Git 仓库叫 `dsh-web-mobile`，npm 包名是 `@dsh-external/dsh-mobile-nav`，patch 行 id 是 `dsh-mobile-nav`；改文档/manifest 时注意区分。
+- 命名已统一：README / Git 仓库 / npm 包名 / patch 行 id 均为 `dsh-handheld`（改名自 `dsh-web-mobile` / `@dsh-external/dsh-mobile-nav`）。
 - 不要手改 `lib/client.js`：由 `pnpm build` 生成，改动应落在 `src/client/`。
 - `.client-build/` 是临时目录，构建脚本会删除；不要当作稳定产物。
 - 抽屉打开态必须用 `transform: none`，不要用 `translateX(0)`：identity transform 会成为 fixed 定位后代的包含块，导致 settings 等浮层错位。
@@ -65,7 +65,7 @@
 - CSS 依赖 `:has()`（Chromium 105+），并遵循 `prefers-reduced-motion`。
 - 为第三方插件做兼容时按 README 列出的精确版本验证（`dsh-web-ui-all` 0.1.14、`dshmarket` 1.2.2、`dsh-usage-stats` 0.1.2、`@omdsh-dev/dsh-genui` 0.8.3）；选择器保持作用域，避免影响桌面端。
 - 抽屉底部顺序由 `sidebar.footer.action` list 槽的 `(priority, order)` 升序决定：`dsh-remote-web-ui` 不设 order（默认 0，听筒+下载图标行在最上）、`dsh-usage-stats` 用 10（用量/余额徽章）。mobile-nav 该注册必须用 `order: 5`：若同为 10 会平票按注册顺序，徽章会插到「文件浏览/导出会话日志」之上（2026-08-16 修过）。
-- 抽屉 footer 按钮渲染成 ~3 倍高（约 100px）或行距出现 40~128px 不规则间隙时，先怀疑手机浏览器加载了旧 bundle / 残留 style 标签（当前 CSS 是 34px 按钮 + 6~8px 间距）；对比 `curl -s http://127.0.0.1:3080/ | grep -o 'dsh-mobile-nav/client.js?rev=…'` 的 rev 与服务端文件，强刷/重开页面验证后再改代码。
+- 抽屉 footer 按钮渲染成 ~3 倍高（约 100px）或行距出现 40~128px 不规则间隙时，先怀疑手机浏览器加载了旧 bundle / 残留 style 标签（当前 CSS 是 34px 按钮 + 6~8px 间距）；对比 `curl -s http://127.0.0.1:3080/ | grep -o 'dsh-handheld/client.js?rev=…'` 的 rev 与服务端文件，强刷/重开页面验证后再改代码。
 - **bundle 永远是最新的**：`/plugins/<id>/client.js` 响应带 `cache-control: no-cache` 且无 validators，服务端对任意 rev 查询都读当前 lib 文件 → 手机上的「旧行为」只可能来自激进缓存/长活 tab（整页 HTML/JS 被浏览器缓存），服务端无法下发旧 bundle。排查手机端时先让用户强刷 + 清站点数据，而不是改代码。**rev 核对方法（2026-08-16 验证）**：`sha1sum lib/client.js` 的前 12 位 = 页面 `client.js?rev=` 的值（rev 就是 lib 文件内容 SHA-1 前缀）。
 - aionui 标记 effect 必须按当前宽度挂载并在宽度变化时重挂（matchMedia change）：只在 apply 时查一次 `narrow.matches` 会让「先宽后窄」（桌面缩放、平板分屏）后文件树点文件永远打不开预览、折叠按钮失效（2026-08-16 修，explorer 关闭 / preview 开关 / 统计行 / 动画重放 4 个 effect 同一模式）。
 - 文件树**目录行不得设置 `data-aionui-preview-open`**：只允许无 `[class$="_treeArrow"]` 的文件行触发，否则点目录展开会弹出 localStorage 恢复的旧预览 tab（用户视角 = 「随便点一下全屏弹出一个 md 内容」，2026-08-16 修）。
@@ -83,7 +83,7 @@
 - **styles/ 按节切片（2026-08-16 拆分心得）**：把 `mobile.css.ts`（现已拆到 `src/client/styles/`）按主题节切片时，各节分隔是**空行 `\n\n` + 下一个 marker 的起始行**；其中 `/* dsh-web-ui family */`、`/* hero composer */` 两个 marker 是**缩进**在 `@media` 块内的（行首有两空格）。切片脚本若用「当前节 end -= 2 + 下节 start = marker 偏移」（去掉空行、下节不带头空格）会丢字节导致 round-trip 不匹配。正确做法：取 `css.lastIndexOf('\n', markerPos) + 1` 作为 marker **所在行的行首**（含缩进）当下节 start，当前节 `end = 下节行首 - 1`（保留一个尾部 `\n`），再用 `join('\n')` 把单 `\n` 补回原来空行的两个 `\n` —— 可证明字节往返一致；生成后务必跑 `node $TMPDIR/split-css.mjs` 的自检 `SPLIT OK`。
 - **`build-client.mjs` 的扁平→递归（2026-08-16 修）**：该 bundler 原先对 `.client-build/` 只做**扁平** `readdir`。把 CSS 放进 `src/client/styles/`（子目录）后 tsc 会 emit 出 `.client-build/styles/*.js`，`index.js` 的 `require("./styles/index.js")` 在扁平 map 里找不到 → 构建直接 `TypeError` 崩溃。已修成**递归收集 + 按宿主模块目录把 `require("./x.js")` 解析/改写为规范相对路径**（如 `styles/base.css.js`），运行时 `__localRequire` 不变。以后往 `src/client/` 加子目录模块是安全的；若未来恢复为扁平，需注意此限制。
 - **整块替换 CSS/代码前先确认替换区间边界**：用脚本按起止标记替换大块时，区间内的独立规则会一起被吞（1779cd4 事故：重写 toggle 块把「全屏几何规则」删了，功能表现为「标记/图标正常切换但浮层不变全屏」）。改完必须 grep 关键选择器/属性（如 `inset: 0`）确认没丢规则；这类回归用户实测前难以察觉。
-- 2026-08-16「手机全屏 md」事故真相：全屏内容 = 会话消息里的 GenUI（dsh-ui fence）卡片（「当前结构」表格），不是任何文件/预览。当前 bundle + 当前 genui CSS 均无全屏渲染路径（aionui 列是底部浮层且被门控、genui block/panel 无 fixed 规则）→ 手机端再复现时先抓 URL 栏：裸文件页 = 浏览器导航到了文件 URL；有 app UI = 旧 JS 缓存。别凭截图猜「旧 bundle」。**补充（当晚续接会话验证，「无全屏路径」的判断不成立）**：Playwright 复用长期挂着的旧页面 context（带旧 localStorage）时，harness web 会把**最后一条 dsh-ui fence 以 `pI_x6G_frame` 兄弟节点挂到 app 根级**，并给 frame 内联 `display: none`（inline style；grid 5 轨仍是 aionui 写的）——任意宽度（360~1280）、`/` 与 `/settings`、当前与重构前 bundle 均复现，与 dsh-mobile-nav 无关（插件从不写 display、桌面宽度同样出现、旧 bundle 同样出现）。**全新 context（无旧存储）** + 会话打开则渲染完全正常，抽屉验证可正常执行。再遇「手机全屏卡」先让用户清站点数据/换新浏览器 context 验证，别据此改 mobile-nav 代码。
+- 2026-08-16「手机全屏 md」事故真相：全屏内容 = 会话消息里的 GenUI（dsh-ui fence）卡片（「当前结构」表格），不是任何文件/预览。当前 bundle + 当前 genui CSS 均无全屏渲染路径（aionui 列是底部浮层且被门控、genui block/panel 无 fixed 规则）→ 手机端再复现时先抓 URL 栏：裸文件页 = 浏览器导航到了文件 URL；有 app UI = 旧 JS 缓存。别凭截图猜「旧 bundle」。**补充（当晚续接会话验证，「无全屏路径」的判断不成立）**：Playwright 复用长期挂着的旧页面 context（带旧 localStorage）时，harness web 会把**最后一条 dsh-ui fence 以 `pI_x6G_frame` 兄弟节点挂到 app 根级**，并给 frame 内联 `display: none`（inline style；grid 5 轨仍是 aionui 写的）——任意宽度（360~1280）、`/` 与 `/settings`、当前与重构前 bundle 均复现，与 dsh-handheld 无关（插件从不写 display、桌面宽度同样出现、旧 bundle 同样出现）。**全新 context（无旧存储）** + 会话打开则渲染完全正常，抽屉验证可正常执行。再遇「手机全屏卡」先让用户清站点数据/换新浏览器 context 验证，别据此改 dsh-handheld 代码。
 - **用户手机浏览器是 Via（WebView 内核 + 激进缓存，会无视 `cache-control: no-cache`）**：旧 HTML/资源会被固化 →「怎么刷新都跳不过、清缓存才好、重建 bundle（rev 变化触发整页重载）后也消失」。诊断此类问题用 `?mobile-nav-debug=1` 徽章（提交 2300b82）：右上角实时显示 URL/宽高/媒体查询/头部/composer/aionui 浮层/genui 数量/捕获的 JS 错误。**未复现时不要重建 bundle**——重建会冲掉手机端卡死状态，反而不利于取证。
 - 没有测试框架：改布局后需在真实 DSH web profile + 窄屏（约 390px）和桌面（≥1024px）手动验证。**Playwright 验证配方（2026-08-16 沉淀）**：① 用**全新 browser context**（`browser.newContext()`），`addInitScript` 写入 `localStorage['dsh.sessions.current'] = JSON.stringify({sessionId})` 后直接开会话页——**不要复用长活 context**（旧 localStorage 会触发 harness「fence-only」状态：frame 内联 `display:none`、最后一条 dsh-ui fence 挂 app 根级，抽屉无法验证，且与 mobile-nav 无关，见「手机全屏 md」pitfall）；② 点 backdrop 关闭抽屉时 Playwright 默认点元素中心会被抽屉盖住（hit-test 拦截）→ 用 `page.mouse.click(x, y)` 点抽屉右侧露出区域；③ **不要用 route 拦截插件 client.js 做 A/B**——fulfill 空 body 会被浏览器缓存，后续加载报 `loaded without registering` 并挂起 goto；A/B 用 `git show <commit>:lib/client.js > lib/client.js` 直接换文件（rev 自动变化，验完恢复）；④ 本机模型无图像输入时，用 `browser_snapshot` + `browser_evaluate` 查几何/计算样式代替截图判读。⑤ **CDP 裸探针**：`node scripts/cdp-probe.mjs`（无 Playwright 依赖，直接 CDP 驱动 chromium）——直连 `/usr/lib/chromium/chrome`（**不要用 `chromium-browser` launcher**，它会注入 `--extra-plugin-dir` 等参数）、`net.listen(0)` 动态空闲端口、`~/.cache/cdp-probe-<ts>` 独立 profile、退出时 SIGKILL chrome 并重试删除 profile（zygote 短时持锁）、stdout flush 后再 `process.exit`（否则管道输出被截断）；seed session 用 `Page.reload` 而非 evaluate 里 `location.reload()`（在途 evaluate 会报 `Inspected target navigated or closed`），workspace 切换/seed 后的 evaluate 要带跨导航重试。
 - **Playwright MCP 是并列会话共享单例**（一个 node 服务 + 按需拉起的浏览器）：一个会话长操作时其他会话显示「被占用」是正常的，别去重启/杀 MCP 服务或它的浏览器；probe 必须自备浏览器（见上配方⑤）并**自清理**——早前 probe 用固定端口 + `process.exit` 不杀子进程，孤儿 chrome 树能把设备 CPU 打满（zygote 60%+），让 MCP 浏览器看起来「卡住/被占用」。清理孤儿时 **`pkill -f` 会匹配到自己的命令行把自己杀掉**（bash -c 里含同样字符串）→ 用 PID 或唯一 profile 串。并列会话里别人可能同时在跑同款 probe：动态端口 + 独立 profile 是硬要求，别用固定 9333 之类的端口。
