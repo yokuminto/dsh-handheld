@@ -1,7 +1,7 @@
 {
-  "name": "@dsh-external/dsh-mobile-nav",
+  "name": "@yokuminto/dsh-handheld",
   "version": "1.0.0",
-  "description": "尽可能的使dsh适配竖屏等移动端设备",
+  "description": "dsh web 移动端竖屏适配（独立维护副本，源自 mexiaosqwq/dsh-web-mobile）",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -58,5 +58,9 @@
     "@types/react-dom": "~18.3.0",
     "typescript": "^6.0.3"
   },
-  "packageManager": "pnpm@11.7.0"
+  "packageManager": "pnpm@11.7.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yokuminto/dsh-handheld.git"
+  }
 }
