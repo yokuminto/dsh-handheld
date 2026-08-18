@@ -1,4 +1,6 @@
-# dsh-web-mobile
+# dsh-handheld
+
+> 独立维护副本：快照自 [mexiaosqwq/dsh-web-mobile](https://github.com/mexiaosqwq/dsh-web-mobile)（2026-08-17），**不与上游同步**，后续功能在本仓库自行演进。
 
 尽可能的使dsh适配竖屏等移动端设备
 
@@ -88,7 +90,7 @@
 ## 安装
 
 ```sh
-dsh plugin --profile web add github:mexiaosqwq/dsh-web-mobile
+dsh plugin --profile web add github:yokuminto/dsh-handheld
 ```
 
 仓库自带构建产物,一条命令直接安装,无 `allowBuilds` 拦截。装完重启 `dsh web`。
