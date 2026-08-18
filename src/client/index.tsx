@@ -31,8 +31,8 @@ export function apply(ctx: ClientContext): void {
 
   ctx.effect(() => {
     const tag = document.createElement('style')
-    tag.dataset.plugin = '@dsh-external/dsh-mobile-nav'
-    tag.dataset.pluginCss = '@dsh-external/dsh-mobile-nav/mobile.css'
+    tag.dataset.plugin = '@yokuminto/dsh-handheld'
+    tag.dataset.pluginCss = '@yokuminto/dsh-handheld/mobile.css'
     tag.textContent = MOBILE_CSS
     document.head.appendChild(tag)
     return () => {
